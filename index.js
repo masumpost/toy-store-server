@@ -28,6 +28,24 @@ async function run() {
     // await client.connect();
 
     const toyCollection = client.db('toyDB').collection('toys');
+
+
+    const indexKeys = {name: 1};
+    const indexOptions = {name: "name"}
+
+    const result = await toyCollection.createIndex(indexKeys, indexOptions);
+
+    app.get('/searchByName/:text', async(req, res) => {
+        const searchText = req.params.text;
+        const result = await toyCollection.find({
+            $or:[
+                {name: { $regex : searchText, $options:"i"}}
+            ]
+        })
+        .toArray();
+
+        res.send(result);
+    })
     
     app.post('/toys', async(req, res) => {
         const newtoys = req.body;
@@ -48,7 +66,7 @@ async function run() {
         .find({sellerEmail: req.params.email})
         .toArray();
         res.send(result);
-    })
+    });
 
     app.get('/toys/:id', async(req, res) => {
         const id = req.params.id;
